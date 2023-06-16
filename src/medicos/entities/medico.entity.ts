@@ -12,6 +12,9 @@ export class Medico extends Document{
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true,})
   user: mongoose.Schema.Types.ObjectId;
+
+  @Prop({ default: true})
+  isActive: boolean;
  
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Hospital', required: true,})
   hospital: mongoose.Schema.Types.ObjectId;

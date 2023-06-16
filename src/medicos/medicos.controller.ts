@@ -7,11 +7,11 @@ import { User } from 'src/auth/entities/user.entity';
 import { AuthGuard } from '../auth/guards/auth/auth.guard';
 import { PaginationDto } from '../Common/dto/pagination.dto';
 
+@UseGuards( AuthGuard )
 @Controller('medicos')
 export class MedicosController {
   constructor(private readonly medicosService: MedicosService) {}
 
-  @UseGuards( AuthGuard )
   @Post()
   create(@Body() createMedicoDto: CreateMedicoDto, @Request() req: Request) {
     const user = req['user'] as User
@@ -28,13 +28,13 @@ export class MedicosController {
     return this.medicosService.findOne(term);
   }
 
-  @Patch(':term')
-  update(@Param('term') term: string, @Body() updateMedicoDto: UpdateMedicoDto) {
-    return this.medicosService.update(term, updateMedicoDto);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateMedicoDto: UpdateMedicoDto) {
+    return this.medicosService.update(id, updateMedicoDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.medicosService.remove(+id);
+    return this.medicosService.remove(id);
   }
 }

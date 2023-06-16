@@ -5,13 +5,13 @@ import { JwtService } from '@nestjs/jwt';
 import { Model, isValidObjectId } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { User } from './entities/user.entity';
-import { JwtPayload } from '../interfaces/jwt-payload.interface'; 
-import { LoginResponse } from '../interfaces/loginResponse.interface ';
-import { LoginUserDto } from './dto/login-user.dto';
+
+import { CreateUserDto, UpdateAuthDto, LoginUserDto} from './dto';
 import { PaginationDto } from '../Common/dto/pagination.dto';
+import { JwtPayload, LoginResponse } from '../interfaces'; 
+
+
 
 @Injectable()
 export class AuthService {

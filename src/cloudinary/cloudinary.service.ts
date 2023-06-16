@@ -3,10 +3,11 @@ import { ConfigService } from '@nestjs/config';
 
 import { v2 as cloudinary } from 'cloudinary'; 
 import { v4 as uuid } from 'uuid';
+
 import { AuthService } from '../auth/auth.service';
 import { HospitalService } from '../hospital/hospital.service';
 import { MedicosService } from '../medicos/medicos.service';
-import { TypeUpload } from '../interfaces/upload.enum';
+import { TypeUpload } from '../interfaces';
 
 
 @Injectable()

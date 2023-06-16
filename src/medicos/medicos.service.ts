@@ -66,23 +66,32 @@ export class MedicosService {
     return medico;
   }
 
-  async update(term:string, updateMedicoDto: UpdateMedicoDto) {
-    const medico = await this.findOne(term);
-    
+  async update(id:string, updateMedicoDto: UpdateMedicoDto) {
+
+    const medico = await this.medicosModel.findOne({_id: id});
+
     try {
-      await medico.updateOne(UpdateMedicoDto);
-  
-      //esparce las propideades de medico y las sobre ecribe con UpdateMedicoDto
-      return { ...medico.toJSON, ...UpdateMedicoDto} 
+      if(!medico){
+        throw new NotFoundException(`medico #${id} not found`);
+      }
       
+      await medico.updateOne(updateMedicoDto)
+      return { medico }
+
     } catch (error) {
       this.handleExceptions(error)
     }
-
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} medico`;
+  async remove(id: string) {
+    const medico = await this.medicosModel.findOne({_id: id, isActive: true})
+    
+    if(!medico){
+      throw new NotFoundException(`medico #${id} not found`);
+    }
+
+    await medico.updateOne({ isActive: false})
+    return 'medico deleted successfully.'
   }
 
   handleExceptions(error:any):never {

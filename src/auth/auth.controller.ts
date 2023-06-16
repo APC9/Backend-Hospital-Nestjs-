@@ -1,12 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { AuthGuard as AuthGuardGoogle } from '@nestjs/passport';
 
-import { CreateUserDto } from './dto/create-user.dto'; 
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { AuthGuard } from './guards/auth/auth.guard';
-import { LoginUserDto } from './dto/login-user.dto';
 import { PaginationDto } from '../Common/dto/pagination.dto';
+import { CreateUserDto, UpdateAuthDto, LoginUserDto } from './dto';
 import { AuthService } from './auth.service';
+import { AuthGuard } from './guards/auth/auth.guard';
 
 import { LoginResponse } from '../interfaces/loginResponse.interface ';
 import { User } from './entities/user.entity';
@@ -48,11 +46,13 @@ export class AuthController {
     return this.authService.findOne(term);
   }
 
+  @UseGuards( AuthGuard )
   @Patch('update/:id')
   async update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
     return await this.authService.update(id, updateAuthDto);
   }
 
+  @UseGuards( AuthGuard )
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.authService.remove(id);

@@ -7,11 +7,11 @@ import { AuthGuard } from '../auth/guards/auth/auth.guard';
 import { User } from '../auth/entities/user.entity';
 import { PaginationDto } from '../Common/dto/pagination.dto';
 
+@UseGuards( AuthGuard )
 @Controller('hospital')
 export class HospitalController {
   constructor(private readonly hospitalService: HospitalService) {}
 
-  @UseGuards( AuthGuard )
   @Post()
   create(@Body() createHospitalDto: CreateHospitalDto, @Request() req: Request) { 
     const user = req['user'] as User
@@ -30,11 +30,11 @@ export class HospitalController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateHospitalDto: UpdateHospitalDto) {
-    return this.hospitalService.update(+id, updateHospitalDto);
+    return this.hospitalService.update(id, updateHospitalDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.hospitalService.remove(+id);
+    return this.hospitalService.remove(id);
   }
 }

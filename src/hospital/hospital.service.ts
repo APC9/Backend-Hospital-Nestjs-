@@ -66,12 +66,32 @@ export class HospitalService {
     return hospital;
   }
 
-  update(id: number, updateHospitalDto: UpdateHospitalDto) {
-    return `This action updates a #${id} hospital`;
+  async update(id: string, updateHospitalDto: UpdateHospitalDto) {
+    
+    const hospital = await this.hospitalModel.findOne({ _id: id });
+
+    try {
+       if (!hospital){
+        throw new NotFoundException(`Hospital #${id} not found`);
+       }
+
+      await hospital.updateOne( updateHospitalDto )
+      return { hospital }
+
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} hospital`;
+  async remove(id: string) {
+    const hospital = await this.hospitalModel.findOne({_id: id, isActive: true});
+
+    if( !hospital ){
+      throw new NotFoundException(`Hospital #${id} not found`);
+    }
+
+    await hospital.updateOne({ isActive: false})
+    return 'User deleted successfully.'
   }
 
   handleExceptions(error:any):never {
