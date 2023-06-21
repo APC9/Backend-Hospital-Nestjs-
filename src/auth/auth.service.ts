@@ -1,13 +1,15 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 import { Model, isValidObjectId } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';// autenticacion de google
 
 import { User } from './entities/user.entity';
 
-import { CreateUserDto, UpdateAuthDto, LoginUserDto} from './dto';
+import { CreateUserDto, UpdateAuthDto, LoginUserDto, LoginGoogleDto} from './dto';
 import { PaginationDto } from '../Common/dto/pagination.dto';
 import { JwtPayload, LoginResponse } from '../interfaces'; 
 
@@ -21,12 +23,15 @@ export class AuthService {
   constructor(
     @InjectModel( User.name )
     private userModel: Model<User>,
-
+    private configService: ConfigService,
     private readonly jwtService: JwtService,
   ){}
 
-  async googleLogin(req) {
-    const { email, name, img } = req.user  
+
+  async googleLogin(loginGoogleDto:LoginGoogleDto) {
+    const { token } = loginGoogleDto;
+    const { name, email, picture } = await this.googleVerify( token )
+
 
     try {
       
@@ -38,7 +43,7 @@ export class AuthService {
           name,
           email,
           password: '@@@@@@@@@',
-          img,
+          img: picture,
           google: true,
           roles: ['user'],
           isActive: true
@@ -46,13 +51,13 @@ export class AuthService {
       }else {
         user = userDB;
         user.google = true;
-      }
+      } 
   
       //Guardar en BD
       await user.save();
   
       return {
-        user,
+        name, email, img: picture,
         token: this.getJwtToken({ id: user._id})
       };
     } catch (error) {
@@ -60,6 +65,24 @@ export class AuthService {
     }
  
   }
+
+  private async googleVerify( token:string ){
+    const client = new OAuth2Client(this.configService.get<string>('GOOGLE_SECRET'));
+
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: this.configService.get<string>('GOOGLE_ID'), 
+        });
+        const payload = ticket.getPayload();
+
+        return payload
+      
+    } catch (error) {
+      throw new BadRequestException('Token de Google no es Correcto')
+    }
+  }
+
 
   async create(createUserDto: CreateUserDto) {
     try {

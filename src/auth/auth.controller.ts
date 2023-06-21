@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, 
 import { AuthGuard as AuthGuardGoogle } from '@nestjs/passport';
 
 import { PaginationDto } from '../Common/dto/pagination.dto';
-import { CreateUserDto, UpdateAuthDto, LoginUserDto } from './dto';
+import { CreateUserDto, UpdateAuthDto, LoginUserDto, LoginGoogleDto } from './dto';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './guards/auth/auth.guard';
 
@@ -13,16 +13,10 @@ import { User } from './entities/user.entity';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('google')
-  @UseGuards( AuthGuardGoogle('google') )
-  async googleAuth(@Request() req) {}
-
-  @Get('google-redirect')
-  @UseGuards( AuthGuardGoogle('google'))
-  googleAuthRedirect(@Request() req) {
-    return this.authService.googleLogin(req);
-  }  
-
+  @Post('google')
+  async googleSingIn(@Body() loginGoogleDto:LoginGoogleDto){
+    return await this.authService.googleLogin(loginGoogleDto)
+  }
 
   @Post('create')
   create(@Body() createAuthDto: CreateUserDto) {
@@ -68,4 +62,15 @@ export class AuthController {
       token: this.authService.getJwtToken({ id: user._id })
     }
   }
+
+
+   /*  @Get('google')
+  @UseGuards( AuthGuardGoogle('google') )
+  async googleAuth(@Request() req) {}
+
+  @Get('google-redirect')
+  @UseGuards( AuthGuardGoogle('google'))
+  googleAuthRedirect(@Request() req) {
+    return this.authService.googleLogin(req);
+  }   */
 }
