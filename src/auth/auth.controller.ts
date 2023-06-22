@@ -35,7 +35,7 @@ export class AuthController {
   }
 
   @UseGuards( AuthGuard )
-  @Get(':term')
+  @Get('search-by/:term')
   findOne(@Param('term') term: string) {
     return this.authService.findOne(term);
   }
