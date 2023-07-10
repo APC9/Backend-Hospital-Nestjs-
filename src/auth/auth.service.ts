@@ -107,14 +107,24 @@ export class AuthService {
     }
   }
 
-  async findAllUser(paginationDto:PaginationDto):Promise<User[]> {
+  async findAllUser(paginationDto:PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
+  
+    let users:User[] = []
+    let usersTotal:User[] = []
 
-    return this.userModel.find({isActive: true})
+    usersTotal = await this.userModel.find({isActive: true })
+
+    users  = await this.userModel.find({isActive: true})
       .limit(limit)
       .skip(offset)
-      .sort({ no: 1}) // ordena de forma ascendente la columna no:
       .select('-__v') // no muestra la propiedad __v en el objeto 
+      //.sort({ no: 1}) // ordena de forma ascendente la columna no:
+
+    return {
+      total: usersTotal.length,
+      users
+    }
   }
 
   async findOne(term:string):Promise<User>  {
@@ -164,13 +174,26 @@ export class AuthService {
     const user = await this.userModel.findOne({_id: id })
   
     try {
+
       if(!user){
         throw new NotFoundException(`User #${id} not found`);
       }
       
-      const { password, ...rest } = updateAuthDto;
+      const { password, email, ...rest } = updateAuthDto;
 
-      await user.updateOne(rest)
+      if(user.google){
+
+        if ( user.email !== email ){
+          this.handleExceptions( { code: 'google'} )
+          return;
+        }
+
+        await user.updateOne(rest)
+        return { ...user.toJSON, ...rest}
+      }
+      
+
+      await user.updateOne({...rest, email })
       return { ...user.toJSON, ...rest}
 
     } catch (error) {
@@ -185,7 +208,10 @@ export class AuthService {
     }
 
     await user.updateOne({ isActive: false})
-    return 'User deleted successfully.'
+    return {
+      ok: true,
+      status: 'User deleted successfully.'
+    }
   }
 
   getJwtToken(payload:JwtPayload){
@@ -195,8 +221,15 @@ export class AuthService {
 
   handleExceptions(error:any):never {
     //error en consola con el formato de Nestjs
-    if ( error.code === '23505')
+
+    if ( error.code === 23505)
       throw new BadRequestException(error.detail);
+    
+    if ( error.status === 500 )
+        throw new BadRequestException('Usuarios de Google no pueden modificar su correo')
+    
+    if ( error.code === 11000 )
+      throw new BadRequestException('Ya existe un usuario con ese correo')
 
     this.logger.error(error);
     throw new InternalServerErrorException('Unexpeced error, check server logs');

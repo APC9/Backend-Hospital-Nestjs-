@@ -35,15 +35,25 @@ export class HospitalService {
     }
   }
   
-  async findAll(paginationDto:PaginationDto):Promise<Hospital[]> {
+  async findAll(paginationDto:PaginationDto){
     const { limit = 10, offset = 0 } = paginationDto;
 
-    return await this.hospitalModel.find()
+    let hospital:Hospital[] = []
+    let hospitalTotal:Hospital[] = []
+
+    hospitalTotal = await this.hospitalModel.find({isActive: true })
+
+    hospital = await this.hospitalModel.find()
       .populate('user', 'name')
       .limit(limit)
       .skip(offset)
-      .sort({ no: 1}) // ordena de forma ascendente la columna no:
-      .select('-__v') // no muestra la propiedad __v en el objeto 
+      //.sort({ no: 1}) // ordena de forma ascendente la columna no:
+      //.select('-__v') // no muestra la propiedad __v en el objeto 
+
+    return {
+      total: hospitalTotal.length,
+      hospital
+    }
   }
 
 
