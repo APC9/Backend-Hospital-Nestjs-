@@ -43,7 +43,7 @@ export class HospitalService {
 
     hospitalTotal = await this.hospitalModel.find({isActive: true })
 
-    hospital = await this.hospitalModel.find()
+    hospital = await this.hospitalModel.find({isActive: true })
       .populate('user', 'name')
       .limit(limit)
       .skip(offset)
@@ -71,7 +71,7 @@ export class HospitalService {
     }
 
     if ( !hospital ) 
-      throw new NotFoundException(`Hospital with id, name or no "${ term }" not found`);
+      throw new NotFoundException(`Hospital with id, name "${ term }" not found`);
 
     return hospital;
   }
@@ -96,12 +96,15 @@ export class HospitalService {
   async remove(id: string) {
     const hospital = await this.hospitalModel.findOne({_id: id, isActive: true});
 
-    if( !hospital ){
+   if( !hospital ){
       throw new NotFoundException(`Hospital #${id} not found`);
-    }
+    } 
 
     await hospital.updateOne({ isActive: false})
-    return 'User deleted successfully.'
+    return {
+      ok: true,
+      msg:'Hospital deleted successfully.'
+    }
   }
 
   handleExceptions(error:any):never {

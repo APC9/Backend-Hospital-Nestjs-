@@ -35,17 +35,24 @@ export class MedicosService {
     }
   }
 
-  async findAll(paginationDto:PaginationDto):Promise<Medico[]> {
+  async findAll(paginationDto:PaginationDto){
     const { limit = 10, offset = 0 } = paginationDto;
 
-    return await this.medicosModel.find()
+    let medicos: Medico[];
+
+    medicos =  await this.medicosModel.find({isActive: true})
       .populate('user', 'name img') // Objeto 'user':{ name, img}
       .populate('hospital', 'name') // Objeto 'hospital':{ name}
       .limit(limit)
       .skip(offset)
       .sort({ no: 1}) // ordena de forma ascendente la columna no:
       .select('-__v') // no muestra la propiedad __v en el objeto 
-  }
+  
+      return{
+        total: medicos.length,
+        medicos
+      }  
+    }
 
   async findOne(term:string):Promise<Medico>  {
    
@@ -53,15 +60,19 @@ export class MedicosService {
     const regex = new RegExp(term.replace(/\s+/g, '\\s*'), 'i');
 
     //Buscar por nombre
-    medico = await this.medicosModel.findOne({ name: regex });
+    medico = await this.medicosModel.findOne({ name: regex })
+      .populate('user', 'name img') // Objeto 'user':{ name, img}
+      .populate('hospital', 'name') // Objeto 'hospital':{ name};
 
     // Buscar por MongoID
     if ( !medico && isValidObjectId( term ) ) {
-      medico = await this.medicosModel.findById( term );
+      medico = await this.medicosModel.findById( term )
+        .populate('user', 'name img') // Objeto 'user':{ name, img}
+        .populate('hospital', 'name') // Objeto 'hospital':{ name};
     }
 
     if ( !medico ) 
-      throw new NotFoundException(`Pokemon with id, name or no "${ term }" not found`);
+      throw new NotFoundException(`MEdico with id, name "${ term }" not found`);
 
     return medico;
   }
@@ -91,7 +102,10 @@ export class MedicosService {
     }
 
     await medico.updateOne({ isActive: false})
-    return 'medico deleted successfully.'
+    return {
+      ok: true,
+      msg: 'medico deleted successfully.'
+    }
   }
 
   handleExceptions(error:any):never {
