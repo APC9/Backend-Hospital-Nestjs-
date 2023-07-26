@@ -8,6 +8,10 @@ import { AuthGuard } from './guards/auth/auth.guard';
 
 import { LoginResponse } from '../interfaces/loginResponse.interface ';
 import { User } from './entities/user.entity';
+import { UserRolesGuard } from './guards/auth/user-roles.guard';
+import { RoleProtected } from './decorators/role-protected.decorator';
+import { ValidRoles } from '../interfaces';
+import { Auth } from './decorators/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -40,7 +44,9 @@ export class AuthController {
     return this.authService.findOne(term);
   }
 
-  @UseGuards( AuthGuard )
+  //@Auth(ValidRoles.admin) 
+  @RoleProtected( ValidRoles.admin )
+  @UseGuards( AuthGuard, UserRolesGuard )
   @Patch('update/:id')
   async update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
     return await this.authService.update(id, updateAuthDto);
@@ -59,7 +65,8 @@ export class AuthController {
 
     return {
       user,
-      token: this.authService.getJwtToken({ id: user._id })
+      token: this.authService.getJwtToken({ id: user._id }),
+      menu: this.authService.getMenuUser( user.roles[0] )
     }
   }
 

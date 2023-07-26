@@ -13,7 +13,17 @@ import { CreateUserDto, UpdateAuthDto, LoginUserDto, LoginGoogleDto} from './dto
 import { PaginationDto } from '../Common/dto/pagination.dto';
 import { JwtPayload, LoginResponse } from '../interfaces'; 
 
+export interface Menu {
+  titulo: string;
+  expanded:boolean;
+  icono: string;
+  submenu: Submenu[];
+}
 
+export interface Submenu{
+  titulo: string;
+  url: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -58,7 +68,8 @@ export class AuthService {
   
       return {
         name, email, img: picture,
-        token: this.getJwtToken({ id: user._id})
+        token: this.getJwtToken({ id: user._id}),
+        menu: this.getMenuUser( user.roles[0] )
       };
     } catch (error) {
       this.handleExceptions(error)
@@ -164,6 +175,7 @@ export class AuthService {
     return {
       user: rest,
       token: this.getJwtToken({ id: user.id }),
+      menu: this.getMenuUser( rest.roles[0] )
     }
 
   }
@@ -235,4 +247,35 @@ export class AuthService {
     throw new InternalServerErrorException('Unexpeced error, check server logs');
   }
 
+
+  getMenuUser( Role = 'admin' || 'user' ):Menu[]{
+
+    const menu: Menu[] = [
+      {
+        titulo: 'Dashboard',
+        expanded: false,
+        icono: 'mdi mdi-gauge',
+        submenu: [
+          { titulo: 'Main', url: 'dashboard' },
+          { titulo: 'Gráficas', url: 'grafica1' },
+          { titulo: 'ProgressBar', url: 'progress' },
+        ]
+      },
+      {
+        titulo: 'Mantenimiento',
+        expanded: false,
+        icono: 'mdi mdi-folder-lock-open',
+        submenu: [
+          { titulo: 'Medicos', url: 'medicos' },
+          { titulo: 'Hospitales', url: 'hospitales' },
+        ]
+      },
+    ];
+
+    if (Role === 'admin'){
+      menu[1].submenu.unshift( { titulo: 'Usuarios', url: 'users' })
+    }
+
+    return menu;
+  }
 }
